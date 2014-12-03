@@ -118,7 +118,8 @@ class ExportApi:
     t_from = int(args.from_d.timestamp())
     t_to   = int(args.to.timestamp())
     res = requests.get("https://geras.1248.io/share/{share}/series/".format(share=args.share),
-                       params={"start": t_from, "end": t_to, "pattern": "/#"},
+                       params={"start": t_from, "end": t_to, "pattern": "/#", 
+                               "rollup": "avg", "interval": "1m"},
                        headers={'accept-encoding': 'identity'},
                        auth=(args.key, ''))
 
