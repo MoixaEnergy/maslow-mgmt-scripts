@@ -77,6 +77,7 @@ class ShareApi:
                         data=json.dumps({"key": args.key,
                                          "share_id": args.name,
                                          "query": {
+                                           "pattern": "",
                                            "group": args.group,
                                          }}))
     print(res.text)
