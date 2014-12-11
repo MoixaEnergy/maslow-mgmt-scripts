@@ -119,28 +119,32 @@ class ExportApi:
     t_from = int(args.from_d.timestamp())
     t_to   = int(args.to.timestamp())
     res = requests.get("https://geras.1248.io/share/{share}/series/".format(share=args.share),
-                       params={"start": t_from, "end": t_to, "pattern": "/#", 
+                       params={"start": t_from, "end": t_to, "group": args.group,
                                "rollup": "avg", "interval": "1m"},
                        headers={'accept-encoding': 'identity'},
                        auth=(args.key, ''))
 
-    res_obj = json.loads(res.text)
-    times = sorted(set([datetime.datetime.fromtimestamp(entry["t"]) for entry in res_obj["e"]]))
-    paths = sorted(set([entry["n"] for entry in res_obj["e"]]))
-    d = dict()
-    for entry in res_obj["e"]:
-      t = datetime.datetime.fromtimestamp(entry["t"])
-      if t not in d: d[t] = {}
-      d[t].update({entry["n"]:entry["v"]})
+    print(res.request.url)
+    if res.status_code != 200:
+      print('error while retrieveing respose: ' + str(res.status_code)+ ' ' + res.reason)
+    else:
+      res_obj = json.loads(res.text)
+      times = sorted(set([datetime.datetime.fromtimestamp(entry["t"]) for entry in res_obj["e"]]))
+      paths = sorted(set([entry["n"] for entry in res_obj["e"]]))
+      d = dict()
+      for entry in res_obj["e"]:
+        t = datetime.datetime.fromtimestamp(entry["t"])
+        if t not in d: d[t] = {}
+        d[t].update({entry["n"]:entry["v"]})
 
-    with open(args.out, 'w', newline='') as outfile:
-      writer = csv.DictWriter(outfile, ["Time"] + paths)
-      writer.writeheader()
-      for t in times:
-        row = {"Time": t}
-        row.update(d.get(t, {}))
-        print(row)
-        writer.writerow(row)
+      with open(args.out, 'w', newline='') as outfile:
+        writer = csv.DictWriter(outfile, ["Time"] + paths)
+        writer.writeheader()
+        for t in times:
+          row = {"Time": t}
+          row.update(d.get(t, {}))
+          print(row)
+          writer.writerow(row)
 
   def add_as_subparser(self, subparsers, name):
     parser = subparsers.add_parser(name)
